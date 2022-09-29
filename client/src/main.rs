@@ -40,7 +40,7 @@ fn main() -> Result<()> {
         Some(Action::GenKeyPair { outfile }) => gen_keypair(outfile),
         Some(Action::AirDrop { keypair_file, sol }) => {
             let keypair = read_keypair_file(keypair_file)?;
-            airdrop(&client, &keypair.pubkey(), sol * LAMPORTS_PER_SOL)
+            airdrop(&client, &keypair.pubkey(), sol_to_lamports(sol))
         }
         Some(Action::CheckBalance { keypair_file }) => {
             let keypair = read_keypair_file(keypair_file)?;
@@ -55,7 +55,7 @@ fn main() -> Result<()> {
             let to_keypair = read_keypair_file(to_keypair_file)?;
 
             let to_pubkey = to_keypair.pubkey();
-            let lamports = (sol * LAMPORTS_PER_SOL as f64) as u64;
+            let lamports = sol_to_lamports(sol);
             transfer_funds(&client, &from_keypair, &to_pubkey, lamports)
         }
         Some(Action::CustomTransfer {
@@ -75,7 +75,7 @@ fn main() -> Result<()> {
                 AccountMeta::new(SYSTEM_ACCOUNT_ID.parse()?, false),
             ];
 
-            let transfer_amount = (sol * LAMPORTS_PER_SOL as f64) as u64;
+            let transfer_amount = sol_to_lamports(sol);
             let instruction_data = InstructionData {
                 vault_bump_seed,
                 transfer_amount,
@@ -143,4 +143,8 @@ fn transfer_funds(
 
 fn read_keypair_file(path: impl AsRef<Path>) -> Result<Keypair> {
     signature::read_keypair_file(path).map_err(|e| anyhow!("read keypair failed: {e}"))
+}
+
+fn sol_to_lamports(sol: f64) -> u64 {
+    (sol * LAMPORTS_PER_SOL as f64) as u64
 }
